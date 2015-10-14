@@ -8,10 +8,6 @@ urls = (
 )
 
 app = web.application(urls, globals())
-connection = MySQLdb.Connect(host='localhost', 
-			user='root', 
-			db='library', 
-		        cursorclass=pymysql.cursors.DictCursor)
 
 render = web.template.render('templates/')
 
@@ -20,15 +16,23 @@ class Index(object):
 		return render.book_form()
 
 	def POST(self):
-		form = web.input(name="Someone", title="Something", publish_date="Sometime")
+		form = web.input(name="Someone", title="Something", publish_date="1776-01-01")
 		book = "%s, by %s in %s" % (form.title, form.name, form.publish_date)
+		connection = MySQLdb.Connect(host='localhost', 
+			user='root', 
+			db='library', 
+	       		)
 		try:
 			with connection.cursor() as cursor:
-				# Create a new record
-				sql = "INSERT INTO `books` (`title`, `author`, `publish_date`) VALUES (%s, %s, %s)"
-				cursor.execute(sql, (form.title, form.name, form.publish_date))
+				add_book_info = """INSERT INTO `books` (`title`, `author`, `publish_date`) VALUES (%s, %s, %s)"""
+				cursor.execute(add_book_info, (form.title, form.name, form.publish_date))
 		# connection is not autocommit by default. So you must commit to save your changes
-			connection.commit()
+				connection.commit()
+		except MySQLdb.Error, e:
+			try:
+				print "MySQL Error [%d]: %s" % (e.args[0], e.args[1])
+			except IndexError:
+				print "MySQL Error: %s" % str(e)
 
 			with connection.cursor() as cursor:
 				# Read a single record
@@ -36,6 +40,12 @@ class Index(object):
 				cursor.execute(sql)
 				result = cursor.fetchone()
 				print(result)
+
+		except MySQLdb.Error, e:
+			try:
+				print "MySQL Error [%d]: %s" % (e.args[0], e.args[1])
+			except IndexError:
+				print "MySQL Error: %s" % str(e)
 		finally:
 				return render.index(book = book)
 				connection.close()

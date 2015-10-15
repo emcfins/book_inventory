@@ -22,33 +22,20 @@ class Index(object):
 			user='root', 
 			db='library', 
 	       		)
-		try:
-			with connection.cursor() as cursor:
-				add_book_info = """INSERT INTO `books` (`title`, `author`, `publish_date`) VALUES (%s, %s, %s)"""
-				cursor.execute(add_book_info, (form.title, form.name, form.publish_date))
+		cursor = connection.cursor()
+		add_book_info = """INSERT INTO `books` (`title`, `author`, `publish_date`) VALUES (%s, %s, %s)"""
+		cursor.execute(add_book_info, (form.title, form.name, form.publish_date))
 		# connection is not autocommit by default. So you must commit to save your changes
-				connection.commit()
-		except MySQLdb.Error, e:
-			try:
-				print "MySQL Error [%d]: %s" % (e.args[0], e.args[1])
-			except IndexError:
-				print "MySQL Error: %s" % str(e)
+		connection.commit()
 
-			with connection.cursor() as cursor:
-				# Read a single record
-				sql = "SELECT `book_number`, `title`, `author` FROM `books`"
-				cursor.execute(sql)
-				result = cursor.fetchone()
-				print(result)
+		# Read a single record
+		sql = "SELECT `book_number`, `title`, `author` FROM `books`"
+		cursor.execute(sql)
+		result = cursor.fetchone()
+		print(result)
 
-		except MySQLdb.Error, e:
-			try:
-				print "MySQL Error [%d]: %s" % (e.args[0], e.args[1])
-			except IndexError:
-				print "MySQL Error: %s" % str(e)
-		finally:
-				return render.index(book = book)
-				connection.close()
+		return render.index(book = book)
+		connection.close()
 
 
 if __name__ == "__main__":
